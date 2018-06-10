@@ -1,0 +1,7 @@
+.bash_history
+.lesshst
+.byobu/.tmux.conf
+.byobu/.welcome-displayed
+.cache/
+work/
+tmp/

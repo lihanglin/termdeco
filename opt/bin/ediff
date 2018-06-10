@@ -1,0 +1,8 @@
+#!/bin/sh
+
+if test -e "$1" && test -e "$2" ; then
+    exec emacs --eval "(ediff-files \"$1\" \"$2\")"
+else
+    echo "$1 or $2 does not exist!."
+fi
+

@@ -1,0 +1,6 @@
+set vertical-split = yes
+color date white default
+color author green default
+color graph-commit red default
+color cursor red yellow standout
+bind generic E !git format-patch -1 %(commit)

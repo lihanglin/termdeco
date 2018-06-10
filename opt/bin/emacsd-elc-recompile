@@ -1,0 +1,4 @@
+#!/bin/sh
+
+find "~/.emacs.d" -type f -name "*.elc" -delete
+emacs --batch --eval '(byte-recompile-directory "~/.emacs.d" 0)'
