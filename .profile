@@ -1,8 +1,6 @@
-# .bash_profile
-
-# Get the aliases and functions
-if [ -f ~/.bashrc ]; then
-	. ~/.bashrc
+# bash-specific rc such as alias, helper
+if [ -n "$BASHPID" ] && [ -r ~/.bashrc ]; then
+    . ~/.bashrc
 fi
 
 # User specific environment and startup programs
