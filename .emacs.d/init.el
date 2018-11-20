@@ -24,12 +24,11 @@
  ;; If there is more than one, they won't work right.
  '(linum ((t (:inherit (shadow default) :foreground "red")))))
 
-(add-to-list 'load-path "~/.emacs.d/plugin")
+(require 'package)
+(package-initialize) ; this line can be omitted since emacs25
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+;(add-to-list 'load-path "~/.emacs.d/elpa")
 
-;; load all enabled tweak file *.el
-;; it would load all tweak files named in
-;; tweak-*.el or tweak-*.elc (if any)
-;;(mapc 'load (file-expand-wildcards "~/.emacs.d/plugin-tweak/tweak-*.el"))
-(mapc 'load
-      (mapcar (lambda (x) (replace-regexp-in-string "\.el" "" x))
-	      (file-expand-wildcards "~/.emacs.d/plugin-tweak/tweak-*.el")))
+
+(mapc 'load (file-expand-wildcards "~/.emacs.d/tweak/*.el"))
+

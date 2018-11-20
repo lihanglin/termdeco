@@ -1,0 +1,47 @@
+#!/bin/sh
+
+#
+# chsubstr: change the substring in files recursively
+#
+while getopts "h" Option
+do
+  case $Option in
+    h)
+	echo "$0 <old-substr> <new-substr> <dirs-or-files>"
+	exit 0
+	;;
+  esac
+done
+
+if [ "$#" -lt 3 ]; then
+    echo "ERROR: lack arguments in command line: $#"
+    exit 1
+fi
+
+if [ -z "$1" ]; then
+    echo "ERROR: <old-substr> not found"
+    exit 1
+fi
+oldsubstr="$1"
+shift
+
+if [ -z "$1" ]; then
+    echo "ERROR: <new-substr> not found"
+    exit 1
+fi
+newsubstr="$1"
+shift
+
+for t in $@
+do
+    echo "process: $t"
+
+    if [ -f $t ]; then
+	sed -i -e "s@${oldsubstr}@${newsubstr}@g" $t
+    elif [ -d $t ]; then
+	find $t -type f -exec sed -i -e "s@${oldsubstr}@${newsubstr}@g" {} \;
+    else
+	echo "ERROR: Not file or directory: $t"
+	exit 1
+    fi
+done

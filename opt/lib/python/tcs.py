@@ -67,7 +67,7 @@ class parse_cc(object):
             self.parser.print_help()
 
     def _lsp(self):
-        print os.environ["PATH"]
+        print((os.environ["PATH"]))
 
     def _lscc(self):
         for idx, cc in enumerate(CC):
@@ -75,7 +75,7 @@ class parse_cc(object):
                 status = ""
             else:
                 status = "(No such file or directory)"
-            print "%2d  %s  %s" % (idx, cc, status)
+            print(("%2d  %s  %s" % (idx, cc, status)))
 
     def _usecc(self):
         ccnum = self.args.usecc
@@ -91,7 +91,7 @@ class parse_cc(object):
         ccs = self._open()
         new_path = "export PATH=%s\n" % orig_path
         ccs.write(new_path)
-        print new_path,
+        print(new_path)
 
     def _init(self):
         orig_path = os.environ["PATH"]
@@ -102,7 +102,7 @@ class parse_cc(object):
 
     def _lsvar(self):
         for var in ALIAS:
-            print var
+            print(var)
 
 def main():
     parser = get_parser()

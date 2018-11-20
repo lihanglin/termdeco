@@ -1,0 +1,7 @@
+* The packages I installed from elpa
+  + helm                    ;; recommand install first!
+  + column-enforce-mode
+  + ggtags
+  + helm-git-grep
+  + tabbar
+  + color-theme
