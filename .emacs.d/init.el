@@ -12,10 +12,16 @@
  '(large-file-warning-threshold nil)
  '(linum-format "%3d ")
  '(make-backup-files nil)
+ '(package-selected-packages
+   (quote
+    (groovy-mode tabbar helm-git-grep helm ggtags column-enforce-mode color-theme)))
  '(python-guess-indent t)
+ '(python-indent-guess-indent-offset t)
+ '(python-skeleton-autoinsert t)
  '(python-use-skeletons t)
  '(safe-local-variable-values (quote ((org-hide-emphasis-markers))))
- '(tabbar-separator (quote (1.0))))
+ '(tabbar-separator (quote (1.0)))
+ '(tcl-indent-level 8))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.

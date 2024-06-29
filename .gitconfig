@@ -13,6 +13,7 @@
 [alias]
 	diff = diff --color
 	s = status
+	lstag = log --tags --decorate --simplify-by-decoration --oneline
 
 [color]
 ui = auto
@@ -38,3 +39,15 @@ whitespace = red reverse
 #added = yellow
 #changed = green
 untracked = cyan
+
+[url "https://github.com/"]
+	insteadOf = git://github.com/
+[url "https://git.qemu.org/git/"]
+	insteadOf = git://git.qemu-project.org/
+[url "https://git.qemu.org/git/"]
+	insteadOf = git://git.qemu.org/
+[url "https://anongit.freedesktop.org/git/"]
+	insteadOf = git://anongit.freedesktop.org/
+[pull]
+	rebase = true
+[safe]

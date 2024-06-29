@@ -1,14 +1,21 @@
+#!/bin/sh
 # tcs: tcs.py wrapper
+
 tcs() {
-    ccs_sh="/run/shm/.ccs.sh.$BASHPID"
-    python $HOME/opt/lib/python/tcs.py $* --bashid $BASHPID
-    ##echo "-----" $ccs_sh
-    if [ -f $ccs_sh ]; then
-	##echo $ccs_sh
-	source $ccs_sh
-	rm -f $ccs_sh
+    local f
+    local PYTHON
+
+    f=$(mktemp -q --suffix=.tcs)
+    # /usr/bin/python or /usr/bin/python3
+    PYTHON=`ls -1 /usr/bin/python* | head -1`
+
+    $PYTHON ${HOME}/opt/lib/python/tcs.py $* $f
+
+    if [ -e $f ]; then
+	source $f
+	rm -f $f
     fi
 }
 
-#call tcs init
-tcs --init
+# init tcs
+tcs init

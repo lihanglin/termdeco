@@ -1,112 +1,140 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
-#Tool-Chain Switch utility
+# ToolChain Switcher utility
 
-CC = [\
-"/bin/gcc/arm64-android-gcc/bin",
-"/bin/gcc/gcc-linaro-5.4.1-2017.05-x86_64_aarch64-linux-gnu/bin",
-"/bin/gcc/arm-android-gcc/bin",
-]
+# todo
+# add short option
+# work for py3 and py2
+# add option for recover the original path
+# remove --bashid, --init
+# separate CC and ALIAS to another .cclist file
+# when typing --lscc, add * to mark what toolchain is used now
+# remove hardcode useing /shm/ ... (some system did not have it)
+# may use "mktemp -q --suffix=.tcs" and use rm -f xxx
+#   tfile=$(mktemp /tmp/foo.XXXXXXXXX)
+# change --lsvar to --lsalias or both
 
-ALIAS = [\
-'arm="ARCH=arm CROSS_COMPILE=arm-linux-androideabi-"',
-'arm64="ARCH=arm64 CROSS_COMPILE=aarch64-linux-android-"',
-]
+# tcs.py [options] [init] tempfile
 
-import argparse
+import sys
 import os
+import os.path as osp
+import logging
+import argparse
 
-def get_parser():
-    parser = argparse.ArgumentParser(description = "Tool-Chain Switch utility. Please do NOT use tcs.py directly. Use tcs wrapper.",
-                                     epilog = "Author: FrankLin <flin@marvell.com>")
+logging.basicConfig(format="%(levelname)s: %(message)s", level=logging.INFO)
 
-    parser.add_argument("--lsp", action = "store_true", help = "list PATH env variable")
-    parser.add_argument("--lscc", action = "store_true", help = "list CC we have now")
-    parser.add_argument("--usecc", nargs = "?", const = 100, type = int, metavar = "CCNUM",
-                        help = "Use which CC we have. If no args specified, use HOSTCC.")
-    parser.add_argument("--lsvar", action = "store_true", help = "list available make VARIABLEs.")
-    parser.add_argument("--bashid", help = "the bash process id which invoked this script")
-    parser.add_argument("--init", action = "store_true", help = "first and must call when login")
+pr_info = logging.info
+pr_debug = logging.debug
+pr_warn = logging.warning
 
-    ##args = parser.parse_args()
-    ##print "debug::::the args we received"
-    ##print args
-    ##return args
-    return parser
+cmdopts = None
 
-class parse_cc(object):
-    def __init__(self, parser):
-        self.ccs_sh = None
-        self.parser = parser
-        #parse_args() must be called after others
-        #or it may exit when user just typed tcs.py --help
-        self.args = parser.parse_args()
+def pr_error(msg, *args, **kwargs):
+    logging.error(msg, *args, **kwargs)
+    sys.exit(1)
+
+# import the user defined toolchain lists
+import imp
+try:
+    cclists = imp.load_source('cclists',
+                              osp.join(os.environ['HOME'], '.cclists'))
+except FileNotFoundError:
+    pr_error("~/.cclists: File not found")
 
 
-    def __del__(self):
-        if self.ccs_sh != None:
-            self.ccs_sh.close()
+def parse_cmdopts():
+    global cmdopts
 
-    def _open(self):
-        _file = "/run/shm/.ccs.sh.%s" % self.args.bashid
-        self.ccs_sh = open(os.path.expanduser(_file), "w")
-        return self.ccs_sh
+    parser = argparse.ArgumentParser(description="ToolChain Switcher utility",
+                                     prog="tcs",
+                                     epilog="Author: Li-Hang Lin <lihang.lin@gmail.com>")
 
-    def parse(self):
-        if self.args.lsp:
-            self._lsp()
-        elif self.args.lscc:
-            self._lscc()
-        elif self.args.usecc != None:
-            self._usecc()
-        elif self.args.lsvar:
-            self._lsvar()
-        elif self.args.init:
-            self._init()
+    parser.add_argument("-p", "--lsp", action="store_true", help="list PATH environment variable")
+    parser.add_argument("-l", "--lscc", action="store_true", help="list the available toolchain from .cclists")
+    parser.add_argument("-c", "--usecc", const=-1, nargs="?", type=int, metavar="CCNUM",
+                        help="Use which CC. If no args was specified, restore the PATH to its original value")
+    parser.add_argument("-a", "--lsvar", action="store_true", help="list the current defined alias from .cclists")
+    parser.add_argument("--lsalias", action="store_true", help="same as -a, --lsvar")
+    parser.add_argument("-r", "--recover", action="store_true", help="restore the PATH to its original value")
+
+    cmdopts = parser.parse_args()
+    cmdopts.parser = parser
+
+def tcs_init():
+    orig_path = os.environ["PATH"]
+    cmdopts.tcs.write("export ORIG_PATH=%s\n" % orig_path)
+    for i in cclists.ALIAS:
+        cmdopts.tcs.write("alias %s\n" % i)
+
+def tcs_lscc():
+    path = os.environ["PATH"]
+
+    for i, cc in enumerate(cclists.CC):
+        if cc in path:
+            cc_inuse = "[%2d]*" % i
         else:
-            self.parser.print_help()
+            cc_inuse = "[%2d]" % i
 
-    def _lsp(self):
-        print((os.environ["PATH"]))
-
-    def _lscc(self):
-        for idx, cc in enumerate(CC):
-            if os.path.isdir(cc):
-                status = ""
-            else:
-                status = "(No such file or directory)"
-            print(("%2d  %s  %s" % (idx, cc, status)))
-
-    def _usecc(self):
-        ccnum = self.args.usecc
-        orig_path = os.environ["ORIG_PATH"]
-
-        if ccnum >= 0 and ccnum <= len(CC)-1:
-            orig_path = CC[ccnum] + ":" + orig_path
-        elif ccnum == 100:
-            pass
+        if os.path.isdir(cc):
+            status = ""
         else:
-            os.sys("The CC[%d] does not exist" % ccnum)
+            status = "(No such file or directory)"
 
-        ccs = self._open()
-        new_path = "export PATH=%s\n" % orig_path
-        ccs.write(new_path)
-        print(new_path)
+        print("%s  %s %s" % (cc_inuse, cc, status))
 
-    def _init(self):
-        orig_path = os.environ["PATH"]
-        ccs = self._open()
-        ccs.write("export ORIG_PATH=%s\n" % orig_path)
-        for var in ALIAS:
-            ccs.write("alias %s\n" % var)
+def tcs_usecc():
+    ccnum = cmdopts.usecc
+    orig_path = os.environ["ORIG_PATH"]
 
-    def _lsvar(self):
-        for var in ALIAS:
-            print(var)
+    if ccnum == -1:
+        pass
+    elif ccnum >= 0 and ccnum <= len(cclists.CC)-1:
+        orig_path = cclists.CC[ccnum] + ":" + orig_path
+    else:
+        pr_error("CC[%d]: The toolchain was Not found" % ccnum)
+
+    cmdopts.tcs.write("export PATH=%s\n" % orig_path)
+    print("Update PATH: %s" % orig_path)
+
+def tcs_recover():
+    orig_path = os.environ["ORIG_PATH"]
+    cmdopts.tcs.write("export PATH=%s\n" % orig_path)
+    print("Update PATH: %s" % orig_path)
 
 def main():
-    parser = get_parser()
-    parse_cc(parser).parse()
+    tcs = open(sys.argv[-1], 'w')
+    sys.argv.pop()
+
+    if len(sys.argv) > 1 and sys.argv[-1] == "init":
+        tcsinit = True
+        sys.argv.pop()
+    else:
+        tcsinit = False
+
+    parse_cmdopts()
+    cmdopts.tcs = tcs
+    pr_debug(cmdopts)
+
+    if tcsinit:
+        tcs_init()
+    else:
+        if cmdopts.lsp:
+            print(os.environ["PATH"])
+        elif cmdopts.lscc:
+            tcs_lscc()
+        elif cmdopts.usecc is not None:
+            tcs_usecc()
+        elif cmdopts.lsvar or cmdopts.lsalias:
+            for var in cclists.ALIAS:
+                print(var)
+        elif cmdopts.recover:
+            tcs_recover()
+        else:
+            cmdopts.parser.print_help()
+
+    if cmdopts.tcs:
+        cmdopts.tcs.close()
 
 if __name__ == "__main__":
     main()

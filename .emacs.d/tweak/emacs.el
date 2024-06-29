@@ -193,3 +193,6 @@
 ;; 	     (if (string-match "llvm" buffer-file-name)
 ;; 		 (progn
 ;; 		      (c-set-style "llvm.org"))))))
+
+;; reload buffer
+(global-set-key (kbd "M-r") 'revert-buffer)

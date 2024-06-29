@@ -1,4 +1,5 @@
 set vertical-split = yes
+set split-view-width = 60%
 color date white default
 color author green default
 color graph-commit red default

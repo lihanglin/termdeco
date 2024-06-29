@@ -1,3 +1,10 @@
 mcd() {
       mkdir -p $1 && cd $1
 }
+
+reload() {
+    # reload all bashrc
+    for f in ~/.bashrc.d/*; do
+	source $f
+    done
+}
